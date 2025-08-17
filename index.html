@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="pageTitle">Çoklu Medya Görüntüleyici</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #FCE4EC 0%, #E8EAF6 100%);
+        }
+        h1, h2 {
+            font-family: 'Playfair Display', serif;
+        }
+        .custom-file-input-container {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            border: 1px solid #D4B6C3;
+            border-radius: 9999px;
+            background-color: #F8BBD0;
+            color: #4A148C;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        .custom-file-input-container:hover {
+            box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+        .custom-file-input {
+            position: absolute;
+            top: 0;
+            right: 0;
+            min-width: 100%;
+            min-height: 100%;
+            font-size: 100px;
+            text-align: right;
+            filter: alpha(opacity=0);
+            opacity: 0;
+            outline: none;
+            cursor: pointer;
+        }
+        .file-name-display {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 0.75rem 1.5rem;
+            flex-grow: 1;
+            color: #6A1B9A;
+        }
+        .browse-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #9C27B0;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .browse-button:hover {
+            background-color: #7B1FA2;
+            transform: scale(1.05);
+        }
+        .styled-select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%239C27B0'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd' /%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1.5rem center;
+            background-size: 1em;
+            padding-right: 3rem;
+        }
+        .styled-button {
+            background: linear-gradient(45deg, #F06292 0%, #BA68C8 100%);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .styled-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+            background: linear-gradient(45deg, #BA68C8 0%, #F06292 100%);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="absolute top-4 right-4 z-10">
+        <select id="language-selector" class="styled-select bg-[#FCE4EC] text-[#6A1B9A] py-2 px-4 rounded-full border border-[#D8BFD8] focus:outline-none focus:ring-2 focus:ring-[#BA68C8] cursor-pointer">
+            <option value="en">English (US)</option>
+            <option value="ru">Русский (RU)</option>
+        </select>
+    </div>
+
+    <div class="bg-white bg-opacity-80 backdrop-filter backdrop-blur-lg p-10 rounded-3xl shadow-2xl w-full max-w-2xl text-center flex flex-col items-center transform transition-all duration-500 ease-in-out hover:scale-105">
+        <h1 class="text-4xl font-bold mb-4 text-[#880E4F]" data-i18n="headerTitle">Çiçeksi Medya Koleksiyonu</h1>
+        <p class="text-md text-[#4A148C] mb-8 font-light" data-i18n="headerText">Seçkin bir medya dosyasını görüntüleyin veya yeni bir tane yükleyin.</p>
+
+        <div class="mb-8 flex flex-col md:flex-row items-center gap-4 w-full">
+            <div class="flex-1 w-full md:w-1/2 min-w-0">
+                <select id="media-selector" class="styled-select w-full bg-[#FCE4EC] text-[#6A1B9A] py-3 px-6 rounded-full border border-[#D8BFD8] focus:outline-none focus:ring-2 focus:ring-[#BA68C8] transition duration-300 overflow-hidden text-ellipsis whitespace-nowrap shadow-sm">
+                    <option value="" data-i18n="selectMediaOption">Medya Seç...</option>
+                </select>
+            </div>
+
+            <form id="upload-form" enctype="multipart/form-data" class="flex-1 w-full md:w-1/2 flex items-center gap-2">
+                <div class="custom-file-input-container w-full">
+                    <span id="file-name-display" class="file-name-display text-sm font-medium" data-i18n="chooseFileText">Dosya Seç...</span>
+                    <label for="media-file-input" class="browse-button text-sm" data-i18n="browseButtonText">Gözat</label>
+                    <input type="file" id="media-file-input" name="mediaFile" accept=".gif,.mp4,.png,.jpg,.jpeg" class="custom-file-input"/>
+                </div>
+                <button type="submit" class="styled-button text-white font-bold py-3 px-8 rounded-full flex-shrink-0" data-i18n="uploadButtonText">Yükle</button>
+            </form>
+        </div>
+
+        <div id="media-container" class="relative w-full aspect-video rounded-3xl overflow-hidden mb-6 border-4 border-[#F8BBD0] bg-[#FFF8E1] flex items-center justify-center shadow-lg">
+            <p id="media-placeholder" class="text-[#880E4F] text-lg font-medium" data-i18n="initialMediaText">Görüntülemek için bir medya dosyası seçin veya yeni bir tane yükleyin.</p>
+        </div>
+    </div>
+
+    <script>
+        const translations = {
+            "en": {
+                "pageTitle": "Media Viewer",
+                "headerTitle": "Smoxelay Media Collection",
+                "headerText": "View a curated media file or upload a new one.",
+                "selectMediaOption": "Select Media...",
+                "noMediaFiles": "No media files found in folder.",
+                "loadingText": "Loading...",
+                "imageLoadError": "An error occurred while loading the image.",
+                "unsupportedFile": "Unsupported file type.",
+                "chooseFileText": "Choose File...",
+                "browseButtonText": "Browse",
+                "uploadButtonText": "Upload",
+                "initialMediaText": "Select a media file or upload a new one to view it.",
+                "fileUploadAlertSuccess": "File uploaded successfully!",
+                "fileUploadAlertError": "An error occurred while uploading the file.",
+                "uploadingText": "Uploading...",
+                "fileUploadedSuccess": "The file has been uploaded. You can view it by selecting it from the list.",
+                "uploadErrorAlert": "Please select a file to upload.",
+                "unsupportedFileAlert": "Unsupported file type. Please upload a .gif, .mp4, or .png file."
+            },
+            "ru": {
+                "pageTitle": "Медиапросмотрщик",
+                "headerTitle": "Smoxelay Коллекция Медиафайлов",
+                "headerText": "Просмотрите медиафайл или загрузите новый.",
+                "selectMediaOption": "Выбрать медиа...",
+                "noMediaFiles": "В папке не найдено медиафайлов.",
+                "loadingText": "Загрузка...",
+                "imageLoadError": "Произошла ошибка при загрузке изображения.",
+                "unsupportedFile": "Неподдерживаемый тип файла.",
+                "chooseFileText": "Выбрать файл...",
+                "browseButtonText": "Обзор",
+                "uploadButtonText": "Загрузить",
+                "initialMediaText": "Выберите медиафайл или загрузите новый, чтобы просмотреть его.",
+                "fileUploadAlertSuccess": "Файл успешно загружен!",
+                "fileUploadAlertError": "Произошла ошибка при загрузке файла.",
+                "uploadingText": "Загрузка...",
+                "fileUploadedSuccess": "Файл был загружен. Вы можете просмотреть его, выбрав из списка.",
+                "uploadErrorAlert": "Пожалуйста, выберите файл для загрузки.",
+                "unsupportedFileAlert": "Неподдерживаемый тип файла. Пожалуйста, загрузите файл .gif, .mp4 или .png."
+            }
+        };
+
+        const elements = document.querySelectorAll('[data-i18n]');
+        const languageSelector = document.getElementById('language-selector');
+
+        const setLanguage = (lang) => {
+            elements.forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[lang] && translations[lang][key]) {
+                    element.textContent = translations[lang][key];
+                    if (element.tagName === 'TITLE') {
+                        document.title = translations[lang][key];
+                    }
+                    if (element.tagName === 'BUTTON') {
+                        // Buton metni için özel işlem
+                    }
+                }
+            });
+            // Seçenek metinlerini güncelle
+            const selectMediaOption = document.querySelector('#media-selector option[value=""]');
+            if (selectMediaOption) {
+                selectMediaOption.textContent = translations[lang].selectMediaOption;
+            }
+            const initialMediaText = document.getElementById('media-placeholder');
+            if (initialMediaText) {
+                initialMediaText.textContent = translations[lang].initialMediaText;
+            }
+        };
+
+        // Dil seçimi değiştiğinde
+        languageSelector.addEventListener('change', (event) => {
+            setLanguage(event.target.value);
+            // Sunucuyu bilgilendirmek için çerez (cookie) veya yerel depolama kullanılabilir.
+            localStorage.setItem('lang', event.target.value);
+        });
+
+        // Sayfa yüklendiğinde varsayılan dil veya kaydedilmiş dil ile başla
+        const savedLang = localStorage.getItem('lang') || 'en';
+        languageSelector.value = savedLang;
+        setLanguage(savedLang);
+
+        // Mevcut JavaScript kodunuzun geri kalan kısmı...
+        const mediaSelector = document.getElementById('media-selector');
+        const mediaContainer = document.getElementById('media-container');
+        const uploadForm = document.getElementById('upload-form');
+        const mediaFileInput = document.getElementById('media-file-input');
+        const fileNameDisplay = document.getElementById('file-name-display');
+
+        const fetchMediaList = () => {
+            fetch('/list-media')
+                .then(response => response.json())
+                .then(files => {
+                    mediaSelector.innerHTML = `<option value="" data-i18n="selectMediaOption">${translations[localStorage.getItem('lang') || 'en'].selectMediaOption}</option>`;
+                    if (files.length === 0) {
+                        mediaSelector.innerHTML += `<option value="" data-i18n="noMediaFiles">${translations[localStorage.getItem('lang') || 'en'].noMediaFiles}</option>`;
+                        return;
+                    }
+                    files.forEach(file => {
+                        const option = document.createElement('option');
+                        option.value = file;
+                        option.textContent = file;
+                        mediaSelector.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Medya listesi alınırken hata oluştu:', error);
+                    mediaSelector.innerHTML = '<option value="">Liste yüklenemedi.</option>';
+                });
+        };
+
+        fetchMediaList();
+
+        mediaSelector.addEventListener('change', (event) => {
+            const selectedFile = event.target.value;
+            if (selectedFile) {
+                mediaContainer.innerHTML = `<p class="text-[#880E4F] animate-pulse">${translations[localStorage.getItem('lang') || 'en'].loadingText}</p>`;
+                const fileExtension = selectedFile.split('.').pop().toLowerCase();
+
+                let mediaElement;
+                if (fileExtension === 'mp4') {
+                    mediaElement = document.createElement('video');
+                    mediaElement.controls = true;
+                    mediaElement.autoplay = true;
+                    mediaElement.muted = true;
+                    mediaElement.loop = true;
+                    mediaElement.className = "w-full h-full object-contain rounded-3xl";
+                    mediaElement.src = `/${selectedFile}`;
+                    mediaElement.addEventListener('canplay', () => {
+                        mediaContainer.innerHTML = '';
+                        mediaContainer.appendChild(mediaElement);
+                    });
+                } else if (fileExtension === 'gif' || fileExtension === 'png' || fileExtension === 'jpg' || fileExtension === 'jpeg') {
+                    mediaElement = document.createElement('img');
+                    mediaElement.src = `/${selectedFile}`;
+                    mediaElement.className = "w-full h-full object-contain rounded-3xl";
+                    mediaElement.onload = () => {
+                        mediaContainer.innerHTML = '';
+                        mediaContainer.appendChild(mediaElement);
+                    };
+                    mediaElement.onerror = () => {
+                        mediaContainer.innerHTML = `<p class="text-red-500">${translations[localStorage.getItem('lang') || 'en'].imageLoadError}</p>`;
+                    };
+                } else {
+                    mediaContainer.innerHTML = `<p class="text-red-500">${translations[localStorage.getItem('lang') || 'en'].unsupportedFile}</p>`;
+                    return;
+                }
+
+                mediaElement.onerror = () => {
+                    mediaContainer.innerHTML = `<p class="text-red-500">${translations[localStorage.getItem('lang') || 'en'].imageLoadError}</p>`;
+                };
+            } else {
+                mediaContainer.innerHTML = `<p id="media-placeholder" class="text-[#880E4F] text-lg font-medium">${translations[localStorage.getItem('lang') || 'en'].initialMediaText}</p>`;
+            }
+        });
+
+        mediaFileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                fileNameDisplay.textContent = file.name;
+            } else {
+                fileNameDisplay.textContent = translations[localStorage.getItem('lang') || 'en'].chooseFileText;
+            }
+        });
+
+        uploadForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const file = mediaFileInput.files[0];
+            if (!file) {
+                alert(translations[localStorage.getItem('lang') || 'en'].uploadErrorAlert);
+                return;
+            }
+
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+            if (!['gif', 'mp4', 'png', 'jpg', 'jpeg'].includes(fileExtension)) {
+                alert(translations[localStorage.getItem('lang') || 'en'].unsupportedFileAlert);
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('mediaFile', file);
+
+            mediaContainer.innerHTML = `<p class="text-[#880E4F] animate-pulse">${translations[localStorage.getItem('lang') || 'en'].uploadingText}</p>`;
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(result => {
+                alert(translations[localStorage.getItem('lang') || 'en'].fileUploadAlertSuccess);
+                fetchMediaList();
+                uploadForm.reset();
+                fileNameDisplay.textContent = translations[localStorage.getItem('lang') || 'en'].chooseFileText;
+                mediaContainer.innerHTML = `<p class="text-[#880E4F] text-lg font-medium">${translations[localStorage.getItem('lang') || 'en'].fileUploadedSuccess}</p>`;
+            })
+            .catch(error => {
+                console.error('Yükleme sırasında bir hata oluştu:', error);
+                alert(translations[localStorage.getItem('lang') || 'en'].fileUploadAlertError);
+                mediaContainer.innerHTML = `<p class="text-red-500">${translations[localStorage.getItem('lang') || 'en'].fileUploadAlertError}</p>`;
+            });
+        });
+    </script>
+</body>
+</html>
